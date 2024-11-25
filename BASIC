@@ -1,0 +1,1193 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MapView RTRW Karanganyar</title>
+    <link rel="stylesheet" href="https://js.arcgis.com/4.24/esri/themes/dark/main.css"/>
+    <script src="https://js.arcgis.com/4.24/"></script>
+    <style>
+        html, body, #viewDiv {
+            padding: 0;
+            margin: 0;
+            height: 100%;
+            width: 100%;
+        }
+              
+        /* Search Container NIB */
+        .search-container {
+            position: absolute;
+            top: 385px;
+            left: 120px;
+            z-index: 150;
+            background-color: rgba(48, 48, 48, 0.834);
+            padding: 5px;
+            border-radius: 8px;
+            border: 1px solid #dfe0e0;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            width: 13% ;
+            display: none; /* Disembunyikan secara default */
+        }
+
+        #toggleSearchBtn {
+            background-color: rgb(48, 48, 48);
+            color: white;
+            border: none;
+            cursor: pointer;
+            padding: 1px;
+            border-radius: 1px;
+            width: 100%;
+            margin-bottom: 10px;
+        }
+
+        .search-form {
+            display: block; /* Menampilkan form pencarian secara default */
+        }
+
+        .search-container input, .search-container button {
+            padding: 3px;
+            margin: 3px 0;
+            width: 90%;
+            height: 13px;
+            
+        }
+        /*tombol cari*/
+        .search-container button { 
+            background-color: #0c0c0c9b;
+            color: hsl(0, 0%, 100%);
+            border: none;
+            cursor: pointer;
+            width: 30%;
+            height: 23px;
+            margin: 4px 0;
+            padding: 4px;
+           
+        }
+        .white-label {
+            color: white; /* Mengatur warna label menjadi putih */
+        }
+
+        /* Tombol toggle Search Container */
+        .toggle-search-btn {
+            position: absolute;
+            top: 450px;
+            left: 10px;
+            z-index: 100;
+            background-color: rgba(37, 37, 37, 0.962);
+            padding: 8px;
+            border-radius: 5px;
+            cursor: pointer;
+            border: 1px solid #a3a3a3;
+            color: hsl(0, 0%, 100%);
+        }
+
+                /* Style untuk dropdown Kecamatan dan Kelurahan */
+        .dropdown {
+            position: relative;
+            display: inline-block;
+            width: 90%; /* Sesuaikan dengan lebar input yang sudah ada */
+            margin: 5px 0;
+        }
+
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            background-color: #f9f9f9;
+            min-width: 100%;
+            max-height: 150px; /* Batas tinggi dropdown untuk kelurahan panjang */
+            overflow-y: auto;  /* Menambahkan scrollbar jika terlalu banyak item */
+            box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+            z-index: 1;
+            color: black; /* Warna teks */
+            border: 1px solid #ccc; /* Border pada dropdown */
+        }
+
+        .dropdown-content div {
+            padding: 10px;
+            text-decoration: none;
+            display: block;
+            cursor: pointer;
+        }
+
+        .dropdown-content div:hover {
+            background-color: #f1f1f1;
+        }
+
+        /* Dropdown muncul ketika di-hover */
+        .dropdown:hover .dropdown-content {
+            display: block;
+        }
+
+        /* Style input untuk dropdown Kecamatan dan Kelurahan */
+        #kecamatanInput, #kelurahanInput {
+        width: 90%; /* Sesuaikan dengan lebar input lainnya */
+        padding: 5px;
+        margin: 5px 0;
+        border: 1px solid #dfe0e0;
+        border-radius: 5px;
+        background-color: #3d3d3d; /* Warna latar belakang input */
+        color: white; /* Warna teks */
+        }
+
+        /* Tombol toggle koordinat TM-3 */
+        .toggle-tm3-btn {
+            position: absolute;
+            top: 488px;
+            left: 10px;
+            z-index: 100;
+            background-color: rgba(37, 37, 37, 0.962);
+            padding: 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            border: 1px solid #a3a3a3;
+            color: hsl(0, 0%, 100%);
+        }
+
+        .tm3-input {
+            position: absolute;
+            top: 400px;
+            left: 120px;
+            z-index: 99;
+            background-color: #0c0c0c9b;
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #a3a3a3;
+            display: none;
+            color: hsl(0, 0%, 100%);
+            width: 6%;
+        }
+        
+        .tm3-input input, .tm3-input select, .tm3-input button {
+            margin: 4px 0;
+            padding: 4px;
+            width: 90%;
+            background-color: #0c0c0c9b;
+            color: hsl(0, 0%, 100%);
+            
+        }
+
+        /*cari kooridnat*/
+        .coordinate-input {
+        position: absolute;
+        top: 570px;
+        left: 120px;
+        z-index: 99;
+        background-color: #0c0c0c9b;
+        padding: 10px;
+        border-radius: 5px;
+        border: 1px solid #a3a3a3;
+        display: none;
+        color: hsl(0, 0%, 100%); /* Warna teks input */
+        }
+
+        .toggle-btn {
+        position: absolute;
+        top: 530px;
+        left: 10px;
+        z-index: 100;
+        background-color: rgba(37, 37, 37, 0.962);
+        padding: 10px;
+        border-radius: 5px;
+        cursor: pointer;
+        border: 1px solid #a3a3a3;
+        color: hsl(0, 0%, 100%); /* Warna teks input */
+        }
+        
+        #goToBtn {
+            margin-bottom: 5px;
+            background-color: rgba(37, 37, 37, 0.962);
+            color: hsl(0, 0%, 100%); /* Warna teks input */
+        }
+
+        input {
+            width: 50%;
+            padding: 2px;
+            margin: 2px 0;
+            border: 1px solid hsl(0, 0%, 100%);
+            border-radius: 5px;
+            background-color: rgba(250, 249, 249, 0.962);
+        }
+
+        #koordinat-display {
+            position: absolute;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: rgba(37, 37, 37, 0.962);
+            color: white;
+            padding: 5px 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            z-index: 10;
+            display: none; /* Awalnya tidak ditampilkan */
+        }
+
+        #tm3-display {
+            position: absolute;
+            bottom: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: rgba(37, 37, 37, 0.962);
+            color: white;
+            padding: 5px 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            z-index: 10;
+            display: none; /* Awalnya tidak ditampilkan */
+        }
+    </style>
+</head>
+<body>
+    <div id="viewDiv"></div>
+
+    <!-- Tombol untuk menampilkan atau menyembunyikan Search Container NIB -->
+    <div class="toggle-search-btn" id="toggleSearchContainer">NIB</div>
+
+    <div class="search-container" id="searchContainer">
+        <button id="toggleSearchBtn">Search NIB</button>
+        <div id="searchForm" class="search-form">
+
+         <!-- Dropdown Kecamatan -->
+         <label for="kecamatanInput" class="white-label">Kecamatan:</label>
+         <input type="text" id="kecamatanInput" placeholder="Pilih Kecamatan" readonly>
+         <div class="dropdown-content" id="kecamatanList"></div>
+         
+         <!-- Dropdown Kelurahan -->
+         <label for="kelurahanInput" class="white-label">Kelurahan:</label>
+         <input type="text" id="kelurahanInput" placeholder="Pilih Kelurahan" readonly disabled>
+         <div class="dropdown-content" id="kelurahanList"></div>
+         
+         <label for="searchNIB" class="white-label">NIB:</label>
+         <input type="text" id="searchNIB" placeholder="Masukkan NIB">
+         
+         <button id="searchBtn">Cari</button>
+        </div>
+    </div>
+      
+    <!-- Tombol untuk menampilkan atau menyembunyikan form koordinat TM-3 -->
+    <div class="toggle-tm3-btn" id="toggleTM3Btn">TM-3</div>
+
+    <!-- Form input TM-3 -->
+    <div class="tm3-input" id="tm3Input">
+        <label for="tm3-easting">TM3 X:</label>
+        <input type="text" id="tm3-easting" placeholder="Enter 343561">
+
+        <label for="tm3-northing">TM3 Y:</label>
+        <input type="text" id="tm3-northing" placeholder="Enter 666811">
+
+        <label for="zone">Zona TM3:</label>
+        <select id="zone">
+            <option value="49.1">49.1</option>
+            <option value="49.2">49.2</option>
+        </select>
+
+        <button id="convertBtn">Go To</button>
+    </div>
+
+    <div class="toggle-btn" id="toggleBtn">Coordinate</div>
+
+    <div class="coordinate-input" id="coordinateInput">
+        <label for="latitude">Latitude:</label>
+        <input type="text" id="latitude" placeholder="Enter -7.9910"><br>
+        <label for="longitude">Longitude:</label>
+        <input type="text" id="longitude" placeholder="Enter 110.76543"><br>
+        <button id="goToBtn">Go To</button>
+     </div>
+     <div id="koordinat-display" style="position: absolute; top: 10px; left: 50%; transform: translateX(-50%); 
+    background-color: rgba(37, 37, 37, 0.962); color: white; padding: 5px 10px; border: 1px solid #ccc; border-radius: 5px; z-index: 10; display: none;">
+        <!-- Koordinat akan muncul di sini setelah klik pada peta -->
+    </div>
+
+    <div id="viewDiv" style="width: 100%; height: 100vh;"></div>
+    <div id="koordinat-display">Koordinat:</div>
+    <div id="tm3-display">TM3:</div>
+    <div class="toggle-btn" 
+         id="toggleAnalystBtn"
+         style="top: 572px;">Analyst</div>
+
+    <script>
+        require([
+            "esri/Map",
+            "esri/views/MapView",
+            "esri/layers/GeoJSONLayer",
+            "esri/layers/GroupLayer",
+            "esri/widgets/BasemapToggle",
+            "esri/widgets/Expand",
+            "esri/widgets/LayerList",
+            "esri/widgets/Locate",
+            "esri/Graphic",
+            "esri/widgets/ScaleBar",
+            "esri/widgets/Compass",
+            "esri/widgets/Search",
+            "esri/widgets/Legend"
+
+        ], (Map, MapView, GeoJSONLayer, GroupLayer, BasemapToggle,Expand,LayerList, Locate, Graphic,ScaleBar,Compass,Search,Legend) => {
+            // Event listener untuk tombol "Analyst"
+                document.getElementById("toggleAnalystBtn").addEventListener("click", function() {
+                    window.location.href = "https://codemrc.github.io/KRA_RTR_analyst/";
+                });
+            // Warna untuk setiap kategori NAMOBJ
+            const renderer_RTRW = {
+                type: "unique-value",
+                field: "NAMOBJ",
+                uniqueValueInfos: [
+                { value: "Kawasan Cagar Alam Geologi", symbol: { type: "simple-fill", color: [255, 242, 242, 0.2], outline: { width: 1, color: "#000000" } } }, //merah muda sangat pucat
+                { value: "Kawasan Cagar Budaya", symbol: { type: "simple-fill", color: [184, 163, 235, 0.2], outline: { width: 1, color: "#000000" } } }, // ungu muda atau lavender
+                { value: "Kawasan Hortikultura", symbol: { type: "simple-fill", color: [230, 255, 230, 0.2], outline: { width: 1, color: "#000000" } } }, // hijau sangat muda
+                { value: "Kawasan Hutan Dengan Tujuan Khusus", symbol: { type: "simple-fill", color: [76, 115, 0, 0.2], outline: { width: 1, color: "#000000" } } }, // hijau zaitun tua atau dark olive green
+                { value: "Kawasan Hutan Lindung", symbol: { type: "simple-fill", color: [224, 255, 232, 0.2], outline: { width: 1, color: "#000000" } } }, // hijau mint sangat muda atau pale mint green
+                { value: "Kawasan Hutan Produksi Terbatas", symbol: { type: "simple-fill", color: [179, 230, 230, 0.2], outline: { width: 1, color: "#000000" } } }, // biru kehijauan muda cyan atau light cyan
+                { value: "Kawasan Hutan Rakyat", symbol: { type: "simple-fill", color: [153, 255, 153, 0.2], outline: { width: 1, color: "#000000" } } }, // hijau muda atau light green
+                { value: "Kawasan Industri", symbol: { type: "simple-fill", color: [223, 223, 146, 0.2], outline: { width: 1, color: "#000000" } } }, // kuning pucat atau pale yellow
+                { value: "Kawasan Lindung Spiritual dan Kearifan Lokal", symbol: { type: "simple-fill", color: [102, 255, 166, 0.2], outline: { width: 1, color: "#000000" } } }, // hijau mint cerah atau bright mint green
+                { value: "Kawasan Perkebunan", symbol: { type: "simple-fill", color: [204, 255, 128, 0.2], outline: { width: 1, color: "#000000" } } }, // hijau limau muda atau light lime green
+                { value: "Kawasan Permukiman Perdesaan", symbol: { type: "simple-fill", color: [255, 204, 76, 0.2], outline: { width: 1, color: "#000000" } } }, // kuning jingga
+                { value: "Kawasan Permukiman Perkotaan", symbol: { type: "simple-fill", color: [255, 194, 51, 0.2], outline: { width: 1, color: "#000000" } } }, // kuning keemasan
+                { value: "Kawasan Pertahanan dan Keamanan", symbol: { type: "simple-fill", color: [230, 76, 255, 0.2], outline: { width: 1, color: "#000000" } } }, // ungu magenta cerah atau bright magenta purple
+                { value: "Kawasan Rawan Bencana Gerakan Tanah", symbol: { type: "simple-fill", color: [204, 179, 179, 0.2], outline: { width: 1, color: "#000000" } } }, // merah muda keabu-abuan atau pale dusty pink
+                { value: "Kawasan Sekitar Danau atau Waduk", symbol: { type: "simple-fill", color: [184, 255, 199, 0.2], outline: { width: 1, color: "#000000" } } }, //hijau pastel muda atau mint green
+                { value: "Kawasan Tanaman Pangan", symbol: { type: "simple-fill", color: [242, 247, 247, 0.2], outline: { width: 1, color: "#000000" } } }, //abu-abu sangat terang
+                { value: "Sempadan Mata Air", symbol: { type: "simple-fill", color: [26, 255, 191, 0.2], outline: { width: 1, color: "#000000" } } }, // hijau mint cerah atau bright mint green
+                { value: "Sempadan Sungai", symbol: { type: "simple-fill", color: [194, 255, 204, 0.2], outline: { width: 1, color: "#000000" } } }, // hijau pastel ato light mint green
+                { value: "Sentra Industri Kecil dan Menengah", symbol: { type: "simple-fill", color: [237, 237, 212, 0.2], outline: { width: 1, color: "#000000" } } }, // abu-abu sangat terang
+                { value: "Taman Hutan Raya", symbol: { type: "simple-fill", color: [230, 179, 255, 0.2], outline: { width: 1, color: "#000000" } } }, // ungu muda atau light lavender
+                { value: "Taman Wisata Alam", symbol: { type: "simple-fill", color: [230, 153, 255, 0.2], outline: { width: 1, color: "#000000" } } }, // ungu muda cerah atau light violet.
+                { value: "Waduk", symbol: { type: "simple-fill", color: [151, 219, 242, 0.2], outline: { width: 1, color: "#000000" } } }  // biru muda atau light sky blue
+                ]
+            };
+
+            // Insert Basemap
+            const map = new Map({
+                basemap: "dark-gray-vector"
+            });
+
+            // Menampilkan Map ke Bodi HTML dengan koordinat baru
+            const view = new MapView({
+                container: "viewDiv",
+                map: map,
+                zoom: 16,  // Mengatur zoom lebih dekat
+                center: [110.950495, -7.5976831] // Longitude, Latitude baru untuk Karanganyar
+            });
+
+            // Layer RTRW
+            const RTRW = new GeoJSONLayer({
+                url: "https://raw.githubusercontent.com/DutyKendartiwastra/PTP-KRA/main/RTRW.geojson",
+                title: "RTRW Kabupaten Karanganyar 2019",
+                renderer: renderer_RTRW,
+                visible: true,
+                popupTemplate: {
+                    title: "{NAMOBJ}",
+                    content: "Kategori: {NAMOBJ}"
+                }
+            });
+
+            // Layer LSD
+            const LSD = new GeoJSONLayer({
+                url: "https://raw.githubusercontent.com/codemrc/KRA_RTR/main/LSD_KRA.json",
+                title: "LSD Kabupaten Karanganyar",
+                renderer: {
+                    type: "simple",
+                    symbol: {
+                        type: "simple-fill",
+                        color: [0, 128, 0, 0.2],  // Hijau dengan transparansi
+                        outline: {
+                            color: [0, 0, 0, 1], // Outline hitam
+                            width: 1
+                        }
+                    }
+                },
+                visible: true,
+                popupTemplate: {
+                    title: "LSD",
+                    content: "Kategori: {LSD}"
+                }
+            });
+            // Layer Lereng
+            const lereng = new GeoJSONLayer({
+                url: "https://raw.githubusercontent.com/codemrc/KRA_RTR/main/lereng.json",
+                title: "Lereng Kabupaten Karanganyar",
+                renderer: {
+                    type: "simple",
+                    symbol: {
+                        type: "simple-fill",
+                        color: [183, 132, 167, 0.2],  // ungu muda dengan transparansi
+                        outline: {
+                            color: [0, 0, 0, 0.5], // Outline hitam
+                            width: 1
+                        }
+                    }
+                },
+                visible: true,
+                popupTemplate: {
+                    title: "lereng",
+                    content: "Kategori: {LERENG}"
+                }
+            });
+            // Layer Kemampuan Tanah
+            const kemampuanTanah = new GeoJSONLayer({
+                url: "https://raw.githubusercontent.com/codemrc/KRA_RTR/main/KEMAMPUANTANAH.json",
+                title: "Kemampuan Tanah Karanganyar",
+                renderer: {
+                    type: "simple",
+                    symbol: {
+                        type: "simple-fill",
+                        color: [255, 255, 0, 0.2],  // Kuning dengan transparansi
+                        outline: {
+                            color: [0, 0, 0, 1] // Outline hitam
+                        }
+                    }
+                },
+                visible: true,
+                popupTemplate: {
+                    title: "Kemampuan Tanah Karanganyar",
+                    content: `
+                        <b>Kategori:</b>
+                        <ul>
+                            <li><b></b> {Lname}</li>
+                            <li><b>Kedalaman Efektif:</b> {Uname}</li>
+                            <li><b>Tektur Tanah:</b> {Xname}</li>
+                            <li><b>Drainase:</b> {Dname}</li>
+                            <li><b>Erosi:</b> {Ename}</li>
+                        </ul>
+                    `
+                }
+            });
+            
+            // Layer Penggunaan Tanah
+            const PenggunaanTanah = new GeoJSONLayer({
+                url: "https://raw.githubusercontent.com/codemrc/KRA_RTR/main/penggunaan%20tanah.json",
+                title: "Pengunaan Tanah Karanganyar",
+                renderer: {
+                    type: "simple",
+                    symbol: {
+                        type: "simple-fill",
+                        color: [255, 255, 0, 0.1],  // Kuning dengan transparansi
+                        outline: {
+                            color: [0, 0, 0, 1] // Outline hitam
+                        }
+                    }
+                },
+                visible: true,
+                popupTemplate: {
+                    title: "Penggunaan Tanah",
+                    content: "Kategori: {PTNOBJNAME}"
+                }
+            });
+//---------------
+// Fungsi untuk mengonversi Latitude/Longitude ke TM3
+function convertLatLonToTM3(latitude, longitude, zone) {
+                const a = 6378137; // Jari-jari bumi (WGS84)
+                const e = 0.081819191; // Eksentrisitas elipsoid
+                const FE = 200000; // False Easting untuk TM3 di Indonesia
+                const FN = 1500000; // False Northing untuk belahan selatan
+                const k0 = 0.9999; // Skala pusat
+                let lambda0; // Central Meridian dalam radian
+
+                // Tentukan central meridian berdasarkan zona yang dipilih
+                if (zone === "49.1") {
+                    lambda0 = 109.5 * (Math.PI / 180);
+                } else if (zone === "49.2") {
+                    lambda0 = 112.5 * (Math.PI / 180);
+                }
+
+                // Konversi latitude dan longitude ke radian
+                const phi = latitude * (Math.PI / 180);
+                const lambda = longitude * (Math.PI / 180);
+
+                const N = a / Math.sqrt(1 - Math.pow(e * Math.sin(phi), 2));
+                const T = Math.pow(Math.tan(phi), 2);
+                const C = (Math.pow(e, 2) / (1 - Math.pow(e, 2))) * Math.pow(Math.cos(phi), 2);
+                const A = Math.cos(phi) * (lambda - lambda0);
+
+                const M = a * ((1 - Math.pow(e, 2) / 4 - 3 * Math.pow(e, 4) / 64 - 5 * Math.pow(e, 6) / 256) * phi
+                            - (3 * Math.pow(e, 2) / 8 + 3 * Math.pow(e, 4) / 32 + 45 * Math.pow(e, 6) / 1024) * Math.sin(2 * phi)
+                            + (15 * Math.pow(e, 4) / 256 + 45 * Math.pow(e, 6) / 1024) * Math.sin(4 * phi)
+                            - (35 * Math.pow(e, 6) / 3072) * Math.sin(6 * phi));
+
+                const easting = FE + k0 * N * (A + (1 - T + C) * Math.pow(A, 3) / 6 + (5 - 18 * T + T * T + 72 * C - 58 * (Math.pow(e, 2) / (1 - Math.pow(e, 2)))) * Math.pow(A, 5) / 120);
+                const northing = FN + k0 * (M + N * Math.tan(phi) * (Math.pow(A, 2) / 2 + (5 - T + 9 * C + 4 * C * C) * Math.pow(A, 4) / 24 + (61 - 58 * T + T * T + 600 * C - 330 * (Math.pow(e, 2) / (1 - Math.pow(e, 2)))) * Math.pow(A, 6) / 720));
+
+                return { easting: easting.toFixed(2), northing: northing.toFixed(2) };
+            }
+
+            // Event listener untuk menangani klik pada peta
+            view.on("click", function(event) {
+                console.log("Map clicked!"); // Debug log untuk memastikan klik terdeteksi
+
+                // Dapatkan koordinat dari lokasi yang diklik
+                const latitude = event.mapPoint.latitude.toFixed(6);
+                const longitude = event.mapPoint.longitude.toFixed(6);
+                const tm3Zone = "49.1"; // Sesuaikan zona TM3 jika diperlukan
+                const tm3Coords = convertLatLonToTM3(latitude, longitude, tm3Zone);
+
+                // Update elemen koordinat di tengah atas dengan koordinat baru
+                const koordinatDisplay = document.getElementById('koordinat-display');
+                koordinatDisplay.style.display = 'block';
+                koordinatDisplay.innerHTML = `Koordinat: Latitude: ${latitude}, Longitude: ${longitude}`;
+
+                // Update elemen TM3 di tengah bawah layar dengan koordinat baru
+                const tm3Display = document.getElementById('tm3-display');
+                tm3Display.style.display = 'block';
+                tm3Display.innerHTML = `TM3: Easting: ${tm3Coords.easting}, Northing: ${tm3Coords.northing}`;
+
+                console.log(`TM3 Koordinat: Easting: ${tm3Coords.easting}, Northing: ${tm3Coords.northing}`); // Debug log TM3
+            });
+            //----------------
+
+
+            //--------------------
+            // Simbologi Batas Admin Api-api
+                const Batas1 = {
+                type: "simple-fill",
+                color: [255, 252, 155, 0],
+                outline: {
+                    color: [255, 252, 155, 1],
+                    width: "1px",
+                    style: "solid"
+                }
+            };
+            const renderer_kelurahan = {
+                type: "simple",
+                title: "Batas Bidang Tanah",
+                symbol: Batas1
+            };
+    
+            
+            // Simbologi Batas Kecamatan
+            const BatasKEC = {
+                type: "simple-fill",
+                color: [34, 40, 49, 0],
+                outline: {
+                    color: [168, 161, 150, 1],
+                    width: "3px",
+                    style: "short-dash-dot-dot"
+                }
+            };
+            const renderer_BatasKEC = {
+                type: "simple",
+                title: "Batas KEC",
+                symbol: BatasKEC
+            };
+            // Renderer Bidang PTP
+            const renderer_Bidang_PTP = {
+                type: "unique-value",
+                field: "KEGIATAN",  // Field yang digunakan untuk kategori
+                uniqueValueInfos: [
+                    {
+                        value: "IL Berusaha",  // Mengganti IL Berusaha menjadi BERUSAHA
+                        label: "BERUSAHA",
+                        symbol: {
+                            type: "simple-fill",
+                            color: [1, 1, 1, 0],  // Transparan
+                            outline: {
+                                color: [145, 221, 207, 1],  // Warna outline hijau
+                                width: "1px",
+                                style: "solid"
+                            }
+                        }
+                    },
+                    {
+                        value: "IL Non Berusaha",  // Mengganti IL Non Berusaha menjadi NON BERUSAHA
+                        label: "NON BERUSAHA",
+                        symbol: {
+                            type: "simple-fill",
+                            color: [1, 1, 1, 0],  // Transparan
+                            outline: {
+                                color: [255, 211, 90, 1],  // Warna outline kuning
+                                width: "1px",
+                                style: "solid"
+                            }
+                        }
+                    },
+                    {
+                        value: "IL Kebijakan",  // Mengganti IL Kebijakan menjadi KEBIJAKAN
+                        label: "KEBIJAKAN",
+                        symbol: {
+                            type: "simple-fill",
+                            color: [1, 1, 1, 0],  // Transparan
+                            outline: {
+                                color: [220, 0, 131, 1],  // Warna outline merah muda
+                                width: "1px",
+                                style: "solid"
+                            }
+                        }
+                    },
+                    {
+                        value: "Non Berusaha",  // Mengganti Non Berusaha menjadi NON BERUSAHA
+                        label: "NON BERUSAHA",
+                        symbol: {
+                            type: "simple-fill",
+                            color: [1, 1, 1, 0],  // Transparan
+                            outline: {
+                                color: [255, 211, 90, 1],  // Warna outline kuning
+                                width: "1px",
+                                style: "solid"
+                            }
+                        }
+                    }
+                ]
+            };
+            // Label Batas Kecamatan
+            const labelBatasKecamatan = {
+                symbol: {
+                    type: "text",
+                    color: [247, 249, 242],
+                    font: {
+                        family: "Avenir Next LT Pro Regular",
+                        size: 15,
+                        weight: "bold"
+                    }
+                },
+                labelPlacement: "above-center",
+                labelExpressionInfo: {
+                    expression: "$feature.KEC"
+                },
+                minScale: 100000,
+                maxScale: 20000
+            };
+            // Label Batas Kelurahan
+            const labelBatasKelurahan = {
+                symbol: {
+                    type: "text",
+                    color: "#FFFC9B",
+                    font: {
+                        family: "Avenir Next LT Pro Regular",
+                        size: 15,
+                        weight: "bold"
+                    }
+                },
+                labelPlacement: "above-center",
+                labelExpressionInfo: {
+                    expression: "$feature.DESA"
+                },
+                minScale: 20000,
+                maxScale: 5000
+            };
+            // Pop Up Template Bidang PTP
+            const popup_BidangPTP = {
+                title: "Nama Pemohon : {NAMA}",
+                content: [
+                    {
+                        type: "fields",
+                        fieldInfos: [
+                            {
+                                fieldName: "BERKAS",
+                                label: "Nomor Berkas"
+                            },
+                            {
+                                fieldName: "TANGGAL",
+                                label: "Tanggal Berkas"
+                            },
+                            {
+                                fieldName: "PERUNTUKAN",
+                                label: "Peruntukan"
+                            },
+                            {
+                                fieldName: "LUAS",
+                                label: "Luas Permohonan (m2)"
+                            }
+                        ]
+                    },
+                    {
+                        type: "text",
+                        title: "Tata Ruang",
+                        text: "<b>Tata Ruang : {ALAMAT}{Kawasan_B}{kws_C}<b>"
+                    },
+                    {
+                        type: "media",
+                        mediaInfos: [
+                            {
+                                title: "Hasil Pertimbangan Teknis Pertanahan",
+                                type: "pie-chart",
+                                value: {
+                                    fields: ["DISETUJUI", "DITOLAK", "disetuju_1"]
+                                }
+                            }
+                        ]
+                    }
+                ]
+            };
+            // Insert SHP Batas Kecamatan
+            const Batas_Kecamatan = new GeoJSONLayer({
+                url: "https://raw.githubusercontent.com/DutyKendartiwastra/PTP-KRA/main/Batas_kecamatan.geojson",
+                title: "Batas Kecamatan",
+                renderer: renderer_BatasKEC,
+                labelingInfo: labelBatasKecamatan,
+                minScale: 2000000,
+                maxScale: 5000
+            });
+            // Batas Kelurahan
+            const BatasAdmin_Kelurahan = new GeoJSONLayer({
+                url: "https://raw.githubusercontent.com/DutyKendartiwastra/PTP-KRA/main/Batas_kelurahan.geojson",
+                title: "Batas Desa/Kelurahan",
+                renderer: renderer_kelurahan,
+                labelingInfo: labelBatasKelurahan,
+                minScale: 20000,
+                maxScale: 5000
+            });
+            // Bidang PTP
+            const BidangPTP = new GeoJSONLayer({
+                url: "https://raw.githubusercontent.com/codemrc/KRA_RTR/refs/heads/main/DATA_PEMOHON.json",
+                title: "Bidang Tanah Permohonan PTP",
+                popupTemplate: popup_BidangPTP,
+                renderer: renderer_Bidang_PTP
+               
+            });
+            //--------------------
+            // Menambahkan semua layer ke map dalam urutan yang diinginkan
+            map.add(BatasAdmin_Kelurahan);
+            map.add(Batas_Kecamatan);
+            map.add(BidangPTP);
+            map.add(lereng);
+            map.add(kemampuanTanah);
+            map.add(PenggunaanTanah);
+            map.add(LSD);
+            map.add(RTRW);
+            
+            // Menambahkan LayerList untuk menampilkan semua layer kecuali layer "Persil"
+            const layerList = new LayerList({
+                view: view,
+                listItemCreatedFunction: (event) => {
+                // Menyembunyikan layer LSD, kemampuanTanah, dan lereng dari LayerList
+                const hiddenLayers = [LSD, PenggunaanTanah,kemampuanTanah, lereng,BidangPTP];
+                if (hiddenLayers.includes(event.item.layer)) 
+                    {event.item.visible = false;}
+                }
+            });
+
+            view.ui.add(new Expand({
+                    content: layerList,
+                    view: view,
+                    group: "top-left"}),
+             "top-left"
+            );
+
+
+            // Menambahkan widget Locate untuk melacak lokasi pengguna
+            const locate = new Locate({
+                view: view
+            });
+            view.ui.add(locate, "top-left");
+            // Menambahkan BasemapToggle
+            const toggle = new BasemapToggle({
+                view: view,
+                nextBasemap: "satellite"
+            });
+
+            view.ui.add(toggle, "bottom-right");
+
+            // Scale Bar
+            const scaleBar = new ScaleBar({
+                view: view,
+                unit: "dual"
+            });
+            view.ui.add(scaleBar, { position: "bottom-right" });
+
+            // Compass
+            const compassWidget = new Compass({
+                view: view
+            });
+            view.ui.add(compassWidget, "top-left");
+
+            // Search
+            const searchWidget = new Search({
+                view: view,
+                allPlaceholder: "Cari Berdasarkan",
+                includeDefaultSources: false,
+                sources: [
+                    {
+                        layer: Batas_Kecamatan,
+                        searchFields: ["KEC"],
+                        displayField: "KEC",
+                        exactMatch: false,
+                        outFields: ["KEC"],
+                        name: "KECAMATAN",
+                        zoomScale: 50000,
+                        placeholder: "Contoh: JUMANTONO"
+                    },
+                    {
+                        layer: BatasAdmin_Kelurahan,
+                        searchFields: ["DESA"],
+                        displayField: "DESA",
+                        exactMatch: false,
+                        outFields: ["DESA"],
+                        name: "DESA",
+                        zoomScale: 10000,
+                        placeholder: "Contoh: NGIJO"
+                    },
+                    {
+                        layer: BidangPTP,
+                        searchFields: ["NAMA"],
+                        displayField: "NAMA",
+                        exactMatch: false,
+                        outFields: ["NAMA"],
+                        name: "PEMOHON",
+                        zoomScale: 1000,
+                        placeholder: "Contoh: suripah"
+                    },
+                    {
+                        layer: BidangPTP,
+                        searchFields: ["Berkas"],
+                        displayField: "Berkas",
+                        exactMatch: false,
+                        outFields: ["Berkas"],
+                        name: "NOMOR BERKAS",
+                        zoomScale: 1000,
+                        placeholder: "Contoh: 51426/2023"
+                    }
+                ]
+            });
+            view.ui.add(searchWidget, { position: "top-right" });
+            // Legend
+            const legend = new Expand({
+                content: new Legend({
+                    view: view,
+                    style: "classic",
+                    layerInfos: [
+                        {
+                            layer: BidangPTP,
+                            title: "KETERANGAN"
+                        }
+                    ]
+                }),
+                view: view,
+                expanded: false
+            });
+            view.ui.add(legend, "bottom-right");
+            //-------------------
+          // Toggle TM-3 form visibility
+            var toggleTM3Btn = document.getElementById("toggleTM3Btn");
+            var tm3Input = document.getElementById("tm3Input");
+
+            toggleTM3Btn.addEventListener("click", function () {
+                if (tm3Input.style.display === "none") {
+                    tm3Input.style.display = "block";
+                    toggleTM3Btn.innerText = "<< TM-3";
+                } else {
+                    tm3Input.style.display = "none";
+                    toggleTM3Btn.innerText = "TM-3";
+                }
+            });
+
+            // Toggle Coordinate form visibility
+            var toggleBtn = document.getElementById("toggleBtn");
+            var coordinateInput = document.getElementById("coordinateInput");
+
+            toggleBtn.addEventListener("click", function () {
+                if (coordinateInput.style.display === "none") {
+                    coordinateInput.style.display = "block";
+                    toggleBtn.innerText = "<< Coordinate";
+                } else {
+                    coordinateInput.style.display = "none";
+                    toggleBtn.innerText = "Coordinate";
+                }
+            });
+
+            // Fungsi untuk menghitung konversi TM3 ke Latitude/Longitude
+            function convertTM3ToLatLon(easting, northing, zone) {
+                const a = 6378137; // Jari-jari bumi (WGS84)
+                const e = 0.081819191; // Eksentrisitas elipsoid
+                const FE = 200000; // False Easting untuk TM3 di Indonesia
+                const FN = 1500000; // False Northing untuk belahan selatan
+                const k0 = 0.9999; // Skala pusat
+                let lambda0; // Central Meridian dalam radian
+
+                // Tentukan central meridian berdasarkan zona yang dipilih
+                if (zone === "49.1") {
+                    lambda0 = 109.5 * (Math.PI / 180);
+                } else if (zone === "49.2") {
+                    lambda0 = 112.5 * (Math.PI / 180);
+                }
+
+                const M = (northing - FN) / k0;
+                const mu = M / (a * (1 - Math.pow(e, 2) / 4 - 3 * Math.pow(e, 4) / 64 - 5 * Math.pow(e, 6) / 256));
+                const e1 = (1 - Math.sqrt(1 - Math.pow(e, 2))) / (1 + Math.sqrt(1 - Math.pow(e, 2)));
+                const J1 = 3 * e1 / 2 - 27 * Math.pow(e1, 3) / 32;
+                const J2 = 21 * Math.pow(e1, 2) / 16 - 55 * Math.pow(e1, 4) / 32;
+                const J3 = 151 * Math.pow(e1, 3) / 96;
+                const J4 = 1097 * Math.pow(e1, 4) / 512;
+                const phi1 = mu + J1 * Math.sin(2 * mu) + J2 * Math.sin(4 * mu) + J3 * Math.sin(6 * mu) + J4 * Math.sin(8 * mu);
+
+                const N1 = a / Math.sqrt(1 - Math.pow(e * Math.sin(phi1), 2));
+                const T1 = Math.pow(Math.tan(phi1), 2);
+                const C1 = (Math.pow(e, 2) / (1 - Math.pow(e, 2))) * Math.pow(Math.cos(phi1), 2);
+                const R1 = a * (1 - Math.pow(e, 2)) / Math.pow(1 - Math.pow(e * Math.sin(phi1), 2), 3 / 2);
+                const D = (easting - FE) / (N1 * k0);
+
+                // Hitung latitude 
+                const lat = phi1 - (N1 * Math.tan(phi1) / R1) * ((D * D / 2) - (5 + 3 * T1 + 10 * C1 - 4 * C1 * C1) * Math.pow(D, 4) / 24);
+                // Hitung longitude
+                const lon = lambda0 + (D / Math.cos(phi1)) - ((1 + 2 * T1 + C1) * Math.pow(D, 3) / 6);
+
+                // Konversi ke derajat
+                const latitude = lat * (180 / Math.PI);
+                const longitude = lon * (180 / Math.PI);
+
+                return { latitude, longitude };
+            }
+
+            // Fungsi untuk menambahkan pin ke peta
+            function addPinToMap(latitude, longitude) {
+                var point = {
+                    type: "point", // Jenis geometri
+                    longitude: longitude,
+                    latitude: latitude
+                };
+
+                var markerSymbol = {
+                    type: "simple-marker", // Jenis simbol
+                    color: [255, 255, 0], // Warna pin (misalnya kuning)
+                    outline: {
+                        color: [255, 255, 255], // Warna outline pin (putih)
+                        width: 2
+                    }
+                };
+
+                var pointGraphic = new Graphic({
+                    geometry: point,
+                    symbol: markerSymbol
+                });
+
+                // Hapus pin lama (jika ada) sebelum menambahkan yang baru
+                view.graphics.removeAll();
+                view.graphics.add(pointGraphic);
+            }
+
+            // Fungsi gabungan: Konversi TM3 dan GoTo dengan Zoom
+            document.getElementById("convertBtn").addEventListener("click", function () {
+                const easting = parseFloat(document.getElementById("tm3-easting").value);
+                const northing = parseFloat(document.getElementById("tm3-northing").value);
+                const zone = document.getElementById("zone").value;
+
+                if (!isNaN(easting) && !isNaN(northing)) {
+                    const result = convertTM3ToLatLon(easting, northing, zone);
+
+                    // Masukkan hasil konversi ke input Latitude dan Longitude
+                    document.getElementById("latitude").value = result.latitude.toFixed(6);
+                    document.getElementById("longitude").value = result.longitude.toFixed(6);
+
+                    // Pindahkan peta ke koordinat hasil konversi
+                    view.goTo({
+                        center: [result.longitude, result.latitude],
+                        zoom: 19 // Sesuaikan level zoom
+                    });
+
+                    // Tambahkan pin (penanda lokasi) di lokasi hasil konversi
+                    addPinToMap(result.latitude, result.longitude);
+
+                } else {
+                    alert("Masukkan koordinat TM3 yang valid.");
+                }
+            });
+
+            // Fungsi Go To berdasarkan input Latitude/Longitude (tombol koordinat)
+            document.getElementById("goToBtn").addEventListener("click", function () {
+                var latitude = parseFloat(document.getElementById("latitude").value);
+                var longitude = parseFloat(document.getElementById("longitude").value);
+
+                if (!isNaN(latitude) && !isNaN(longitude)) {
+                    view.goTo({
+                        center: [longitude, latitude],
+                        zoom: 19 // Sesuaikan level zoom
+                    });
+
+                    // Tambahkan pin (penanda lokasi) di lokasi yang diinputkan
+                    addPinToMap(latitude, longitude);
+
+                } else {
+                    alert("Masukkan koordinat yang valid.");
+                }
+            });
+
+
+            //-------------------------
+             // Toggle untuk Search Container cari NIB
+            var toggleSearchContainer = document.getElementById("toggleSearchContainer");
+            var searchContainer = document.getElementById("searchContainer");
+
+            toggleSearchContainer.addEventListener("click", function() {
+                if (searchContainer.style.display === "none") {
+                    searchContainer.style.display = "block";
+                    toggleSearchContainer.innerText = "<< NIB";
+                } else {
+                    searchContainer.style.display = "none";
+                    toggleSearchContainer.innerText = "NIB";
+                }
+            });
+
+            // Toggle search form di dalam Search Container
+            var toggleSearchBtn = document.getElementById("toggleSearchBtn");
+            var searchForm = document.getElementById("searchForm");
+
+            toggleSearchBtn.addEventListener("click", function () {
+                if (searchForm.style.display === "none") {
+                    searchForm.style.display = "block";
+                    toggleSearchBtn.innerText = "Minimize Search NIB";
+                } else {
+                    searchForm.style.display = "none";
+                    toggleSearchBtn.innerText = "Search NIB";
+                }
+            });
+
+            // Data kecamatan dan kelurahan
+            var dataWilayah = {
+                "Karanganyar": ["Bejen", "Bolong","Cangakan","Delingan","Gayamdompo", "Gedong", "Jantiharjo", "Jungke", "Karanganyar", "Lalung", "Popongan", "Tegalgede"],
+                "Tasikmadu": ["Buran", "Gaum", "Kalijirak", "Karangmojo", "Kaling","Ngijo","Pandeyan", "Papahan", "Suruh", "Wonolopo"],
+                "Colomadu": ["Baturan","Blulukan", "Bolon", "Gajahan","Gawanan", "Gedongan", "Klodran","Malangjiwan", "Ngasem", "Paulan", "Tohudan"],
+                "Gondangrejo": ["Bulurejo","Dayu","Jatikuwung", "Jeruksawit", "Karangturi","Kragan","Krendowahono","Plesungan","Rejoari","Selokaton",
+                                "Tuban", "Wonorejo", "Wonosari"],
+                "Jaten": ["Brujul", "Dagen", "Jaten","Jati", "Jetis", "Ngringo", "Sroyo", "Suruhkalang"],
+                "Jatipuro": [ "Jatiharjo","Jatikuwung","Jatimulyo", "Jatipuro","Jatipurwo","Jatiroyo", "Jatisobo","Jatisuko","Jatiwarno","Ngepungsari" ],
+                "Jatiyoso": ["Beruk","Jatisawit","Jatiyoso", "Karangsari","Petung" ,"Tlobo","Wonokeling","Wonorejo", "Wukirsawit"],
+                "Jenawi": ["Anggrasmanis","Balong", "Gumeng","Jenawi","Lempong", "Menjing", "Seloromo", "Sidomukti", "Trengguli"],
+                "Jumantono": ["Blorong","Gemantar","Genengan","Kebak","Ngunut","Sambirejo","Sedayu","Sringin","Sukosari","Tugu","Tunggulrejo"],
+                "Jumapolo": ["Bakalan","Giriwondo","Jatirejo","Jumantoro","Jumapolo","Kadipiro","Karangbangun","Kedawung","Kwangsan","Lemahbang","Paseban","Ploso"],
+                "Kebakkramat": ["Alastuwo","Banjarharjo","Kaliwuluh","Kebak","Kemiri","Macanan","Malanggaten","Nangsri",  "Pulosari","Waru"],
+                "Kerjo": ["Botok","Ganten","Gempolan","Karangrejo","Kuto","Kwadungan","Plosorejo","Sumberrejo","Tamansari","Tawangsari" ],
+                "Matesih": ["Dawung","Gantiwarno","Girilayu","Karangbangun","Koripan","Matesih", "Ngadiluwih", "Pablengan", "Plosorejo"],
+                "Mojogedang": ["Buntar","Gebyog","Gentungan", "Kaliboto", "Kedungjeruk","Mojogedang", "Mojoroto", "Munggur","Ngadirejo","Pendem","Pereng","Pojok","Sewurejo"],
+                "Ngargoyoso": ["Berjo","Dukuh","Girimulyo","Jatirejo", "Kemunig","Ngargoyoso","Nglegok","Puntukrejo","Segorogunung"],
+                "Tawangmangu": ["Bandardawung","Blumbang", "Gondosuli","Kalisoro","Karanglo","Nglebak","Plumbon","Sepanjang","Tawangmangu","Tengklik"],
+                "Karangpandan": ["Bangsri","Dayu","Doplang","Gerdu","Gondangmanis","Harjosari","Karang","Karangpandan","Ngemplak","Salam","Tohkuning"]
+            };
+
+            // Menampilkan daftar kecamatan
+            var kecamatanArray = Object.keys(dataWilayah).sort(); 
+            for (var kecamatan in dataWilayah) {
+                dataWilayah[kecamatan].sort(); // Mengurutkan kelurahan
+            }
+
+            var kecamatanList = document.getElementById("kecamatanList");
+            kecamatanArray.forEach(function(kecamatan) {
+                var kecamatanOption = document.createElement("div");
+                kecamatanOption.textContent = kecamatan;
+                kecamatanOption.onclick = function() {
+                    document.getElementById("kecamatanInput").value = this.textContent;
+                    document.getElementById("kelurahanInput").disabled = false;
+                    kecamatanList.style.display = "none";
+
+        // Menampilkan daftar kelurahan sesuai kecamatan yang dipilih
+        var kelurahanList = document.getElementById("kelurahanList");
+        kelurahanList.innerHTML = "";
+        var selectedKecamatan = this.textContent;
+        dataWilayah[selectedKecamatan].forEach(function(kelurahan) {
+            var kelurahanOption = document.createElement("div");
+            kelurahanOption.textContent = kelurahan;
+            kelurahanOption.onclick = function() {
+                document.getElementById("kelurahanInput").value = this.textContent;
+                kelurahanList.style.display = "none";
+            };
+            kelurahanList.appendChild(kelurahanOption);
+        });
+
+                kelurahanList.style.display = "block";
+            };
+            kecamatanList.appendChild(kecamatanOption);
+        });
+
+        // Tampilkan daftar kecamatan ketika input kecamatan diklik
+        document.getElementById("kecamatanInput").onclick = function() {
+            kecamatanList.style.display = "block";
+        };
+
+        document.getElementById("kelurahanInput").onclick = function() {
+            var kelurahanList = document.getElementById("kelurahanList");
+            if (!this.disabled) {
+                kelurahanList.style.display = "block";
+            }
+        };
+
+        // Fungsi pencarian ketika tombol 'Cari' diklik
+        document.getElementById("searchBtn").addEventListener("click", function() {
+            var searchKecamatan = document.getElementById("kecamatanInput").value;
+            var searchKelurahan = document.getElementById("kelurahanInput").value;
+            var searchNIB = document.getElementById("searchNIB").value;
+
+        // Debugging untuk melihat input pengguna
+        console.log("Input Kecamatan: ", searchKecamatan);
+        console.log("Input Kelurahan: ", searchKelurahan);
+        console.log("Input NIB: ", searchNIB);
+
+        // Filter layer berdasarkan kriteria pencarian
+        var whereClause = [];
+        if (searchKecamatan) {
+            whereClause.push(`KECAMATAN LIKE '%${searchKecamatan}%'`);
+        }
+        if (searchKelurahan) {
+            whereClause.push(`KELURAHAN LIKE '%${searchKelurahan}%'`);
+        }
+        if (searchNIB) {
+            whereClause.push(`NIB LIKE '%${searchNIB}%'`);
+        }
+        var finalWhereClause = whereClause.join(" AND ");
+
+        // Definisikan fungsi query untuk kedua layer
+        function queryLayer(layer) {
+            return layer.queryFeatures({
+                where: finalWhereClause,  // Gunakan klausa where yang sama
+                outFields: ["NIB", "KECAMATAN", "KELURAHAN", "LUASTERTUL", "TIPEHAK"], // Field-field yang diambil
+                returnGeometry: true      // Penting untuk mendapatkan geometri untuk zoom
+            });
+        }
+
+        // Query kedua layer (Jenawi, Kerjo, Jatipuro, Jumapolo, Jatiyoso, Jumantono, Matesih, Ngargoyoso,
+        // Mojogedang, Karangpandan, Tasikmadu, Tawangmangu, Jaten, Kebakkramat, Karanganyar, Gondangrejo, Colomadu)
+        Promise.all([queryLayer(Jenawi), queryLayer(Kerjo), queryLayer(Jatipuro), queryLayer(Jumapolo), queryLayer(Jatiyoso),
+        queryLayer(Jumantono), queryLayer(Matesih), queryLayer(Ngargoyoso), queryLayer(Mojogedang), queryLayer(Karangpandan),
+        queryLayer(Tasikmadu), queryLayer(Tawangmangu), queryLayer(Jaten), queryLayer(Kebakkramat), queryLayer(Karanganyar),
+        queryLayer(Gondangrejo), queryLayer(Colomadu)]).then(function(results) {
+            var allFeatures = [];
+
+        // Gabungkan semua fitur dari hasil query
+        results.forEach(function(result) {
+            allFeatures = allFeatures.concat(result.features);
+        });
+
+        if (allFeatures.length > 0) {
+            // Dapatkan geometri fitur hasil pertama dan lakukan zoom
+            var feature = allFeatures[0];
+            view.goTo({
+                target: feature.geometry,
+                zoom: 20 // Atur zoom level, sesuaikan sesuai kebutuhan
+            }).then(function() {
+               // Tampilkan popup setelah zoom
+                view.popup.open({
+                    title: "Detail Bidang",
+                    location: feature.geometry,  // Lokasi untuk menampilkan popup
+                    content: `
+                    <b>NIB:</b> ${feature.attributes.NIB}<br>
+                    <b>Kecamatan:</b> ${feature.attributes.KECAMATAN}<br>
+                    <b>Kelurahan:</b> ${feature.attributes.KELURAHAN}<br>
+                    <b>Luas:</b> ${feature.attributes.LUASTERTUL} m2<br>
+                    <b>Tipe Hak:</b> ${feature.attributes.TIPEHAK}
+                     `
+                });
+                // Highlight atau select bidang
+                var highlight = view.highlight([feature]);
+    
+                // Debugging
+                console.log("Ditemukan fitur: ", feature.attributes);
+
+                // Membuat fitur tetap terseleksi selama 3 detik
+                setTimeout(function() {
+                highlight.remove(); // Menghilangkan highlight
+                }, 3000);
+            });
+            
+        } else {
+            // Jika tidak ada fitur yang ditemukan
+            alert("Tidak ada hasil yang cocok dengan pencarian Anda.");
+        }
+    }).catch(function(error) {
+        console.error("Error saat query fitur: ", error);
+    });
+    });
+
+
+
+//----end
+});
+    </script>
+</body>
+</html>
